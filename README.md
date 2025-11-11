@@ -45,7 +45,9 @@ Diseñar e implementar un robot móvil de navegación autónoma usando ESP32, co
 
 ### Sensores
 - **HC-SR04** - Sensor ultrasónico (detección de obstáculos 2-400cm)
+  - Montado sobre servomotor para visión panorámica de 180°
 - **MPU6050** - IMU 6 ejes (acelerómetro + giroscopio, comunicación I2C)
+- **Servomotor SG90** - Control de orientación del sensor ultrasónico (0-180°)
 
 ### Actuadores
 - **2x Motores DC** con reductora (6V, encoder opcional)
@@ -72,6 +74,8 @@ Diseñar e implementar un robot móvil de navegación autónoma usando ESP32, co
 | **HC-SR04** |  |  |
 | Trigger | GPIO 5 | Salida Digital |
 | Echo | GPIO 18 | Entrada Digital |
+| **Servomotor SG90** |  |  |
+| Señal (PWM) | GPIO 13 | Control de posición |
 | **MPU6050** |  |  |
 | SDA | GPIO 21 | I2C Data |
 | SCL | GPIO 22 | I2C Clock |
@@ -93,13 +97,15 @@ Diseñar e implementar un robot móvil de navegación autónoma usando ESP32, co
 ## 🚀 Funcionalidades del Sistema
 
 ### 1. Navegación Autónoma
-- **Detección de obstáculos**: Sensor HC-SR04 escanea continuamente
-- **Distancia de seguridad**: 20cm (configurable)
+- **Sistema de radar panorámico**: Servo con HC-SR04 barre 180° (0° a 180°)
+- **Detección inteligente**: Análisis de entorno en 3 sectores (Derecha, Centro, Izquierda)
+- **Distancia de seguridad**: 30cm (configurable)
 - **Algoritmo de evasión**:
-  - Si obstáculo detectado → Detener
-  - Retroceder 500ms
-  - Girar 90° (dirección aleatoria)
-  - Continuar avance
+  - Barrido completo del entorno cada ciclo
+  - Análisis de mejor dirección disponible
+  - Si obstáculo frontal → Retroceder
+  - Buscar sector con mayor espacio libre
+  - Girar hacia dirección despejada y continuar
 
 ### 2. Control de Motores
 - **PWM de 8 bits** (0-255) para velocidad variable
@@ -150,12 +156,22 @@ carrito-micros/
 │   │   └── main_robot.ino      # Código principal ESP32
 │   ├── libraries/              # Bibliotecas necesarias
 │   │   ├── MPU6050/
-│   │   └── NewPing/
+│   │   └── ESP32Servo/
 │   └── tests/                  # Códigos de prueba individuales
-│       ├── test_ultrasonic.ino
-│       ├── test_motors.ino
-│       ├── test_mpu6050.ino
-│       └── test_bluetooth.ino
+│       ├── test_ultrasonico/
+│       │   └── test_ultrasonico.ino
+│       ├── test_motores/
+│       │   └── test_motores.ino
+│       ├── test_mpu6050/
+│       │   └── test_mpu6050.ino
+│       ├── test_bluetooth/
+│       │   └── test_bluetooth.ino
+│       ├── test_servo/
+│       │   └── test_servo.ino
+│       ├── test_radar/
+│       │   └── test_radar.ino          # Servo + HC-SR04 básico
+│       └── test_radar_avanzado/
+│           └── test_radar_avanzado.ino # Sistema radar inteligente
 ├── gui/
 │   ├── desktop_app.py          # Aplicación Python/Tkinter
 │   ├── requirements.txt        # Dependencias Python
@@ -189,9 +205,9 @@ Instalar desde el Library Manager:
 ```
 - Wire.h              (Incluida en Arduino - Comunicación I2C)
 - BluetoothSerial.h   (Incluida en ESP32 Core)
+- ESP32Servo.h        (Control de servomotores en ESP32)
 - Adafruit_MPU6050.h  (Gestión del sensor MPU6050)
 - Adafruit_Sensor.h   (Dependencia de MPU6050)
-- NewPing.h           (Control optimizado HC-SR04)
 ```
 
 ### Python (GUI Desktop)
@@ -253,44 +269,135 @@ python desktop_app.py
 
 ## 🧪 Pruebas y Validación
 
+### Metodología de Sprints
+
+El desarrollo sigue una metodología de **sprints** con pruebas incrementales:
+
+**Sprint 1:** Pruebas individuales de componentes  
+**Sprint 2:** Integración de subsistemas  
+**Sprint 3:** Sistema completo y optimización  
+
 ### Pruebas Unitarias (Tests Individuales)
 
-#### Test 1: Sensor Ultrasónico
-```cpp
-// Archivo: tests/test_ultrasonic.ino
-// Verificar lectura de distancias entre 2-400cm
-// Medir precisión comparando con regla
-```
+Cada componente tiene su programa de prueba independiente con salida por Serial Monitor.
 
-#### Test 2: Control de Motores
+#### Test 1: Bluetooth (test_bluetooth.ino)
 ```cpp
-// Archivo: tests/test_motors.ino
-// Probar 3 velocidades y 5 movimientos
-// Verificar giros consistentes a 90°
+// Archivo: tests/test_bluetooth/test_bluetooth.ino
+// Verificar comunicación Bluetooth Classic
+// Nombre: "ESP32_Robot" | Baudrate: 115200
+// Comandos: F/B/L/R/S/V
 ```
+**Validación:**
+- ✅ Emparejamiento exitoso
+- ✅ Envío de datos cada 1 segundo
+- ✅ Recepción de comandos sin demora
+- ✅ Conexión estable por 30+ minutos
 
-#### Test 3: MPU6050
+#### Test 2: Servomotor (test_servo.ino)
 ```cpp
-// Archivo: tests/test_mpu6050.ino
+// Archivo: tests/test_servo/test_servo.ino
+// Probar movimiento del servo de 0° a 180°
+// Barridos lentos, rápidos y posiciones clave
+```
+**Validación:**
+- ✅ Movimiento suave sin vibraciones
+- ✅ Alcanza posiciones exactas (0°, 90°, 180°)
+- ✅ Sin reinicios del ESP32 durante operación
+
+#### Test 3: Sensor Ultrasónico (test_ultrasonico.ino)
+```cpp
+// Archivo: tests/test_ultrasonico/test_ultrasonico.ino
+// Test SOLO del HC-SR04 (sin servo)
+// Sensor fijo midiendo distancias
+// Clasificación automática: Muy cerca / Cerca / Media / Lejos
+```
+**Validación:**
+- ✅ Mediciones estables (±2cm de error)
+- ✅ Detección confiable de 5-200cm
+- ✅ Respuesta < 50ms por lectura
+- ✅ Formato claro con clasificación de distancia
+
+#### Test 4: Sistema Radar Básico (test_radar.ino)
+```cpp
+// Archivo: tests/test_radar/test_radar.ino
+// Servo + HC-SR04 en barrido continuo
+// Salida CSV: angulo,distancia
+```
+**Validación:**
+- ✅ Barrido completo de 180° sin interrupciones
+- ✅ Mediciones consistentes en cada ángulo
+- ✅ Formato CSV correcto para visualización
+
+#### Test 5: Radar Avanzado (test_radar_avanzado.ino)
+```cpp
+// Archivo: tests/test_radar_avanzado/test_radar_avanzado.ino
+// Sistema completo con análisis de entorno
+// Detección inteligente en 3 sectores
+// Recomendación automática de dirección
+```
+**Validación:**
+- ✅ Mapa de distancias completo (19 puntos)
+- ✅ Identificación correcta de mejor dirección
+- ✅ Análisis por sectores preciso
+
+#### Test 6: Control de Motores (test_motores.ino)
+```cpp
+// Archivo: tests/test_motores/test_motores.ino
+// Probar 2 motores con Puente H
+// 6 pruebas: Avanzar (3 velocidades), Retroceder, Girar I/D
+// IMPORTANTE: Elevar robot antes de probar
+```
+**Validación:**
+- ✅ Ambos motores giran correctamente
+- ✅ 3 velocidades funcionales (150, 200, 255)
+- ✅ Giros precisos sin deriva
+- ✅ Control PWM estable
+
+#### Test 7: MPU6050 (test_mpu6050.ino)
+```cpp
+// Archivo: tests/test_mpu6050/test_mpu6050.ino
 // Calibración del sensor (superficie plana)
 // Validar lecturas de aceleración y ángulos
 ```
-
-#### Test 4: Bluetooth
-```cpp
-// Archivo: tests/test_bluetooth.ino
-// Enviar datos de prueba cada 100ms
-// Verificar recepción en Serial Bluetooth Terminal (app móvil)
-```
+**Validación:**
+- ✅ Comunicación I2C exitosa (dirección 0x68)
+- ✅ Lecturas de aceleración estables
+- ✅ Cálculo de ángulos pitch/roll correcto
+- ✅ Detección de movimiento funcional
 
 ### Pruebas Integradas
 
 | Prueba | Descripción | Criterio de Éxito |
 |--------|-------------|-------------------|
-| Navegación | Robot en pista con obstáculos | Evita 10/10 obstáculos |
-| Estabilidad BT | Operación continua | 30 min sin desconexión |
-| Precisión Trayectoria | Recorrido cuadrado 1m×1m | Error < 15% |
-| Control Remoto | Cambio de velocidad desde GUI | Respuesta < 500ms |
+| **Sistema Radar** | Barrido 180° con detección | Mapa completo sin errores |
+| **Navegación** | Robot en pista con obstáculos | Evita 10/10 obstáculos |
+| **Estabilidad BT** | Operación continua | 30 min sin desconexión |
+| **Precisión Trayectoria** | Recorrido cuadrado 1m×1m | Error < 15% |
+| **Control Remoto** | Cambio de velocidad desde GUI | Respuesta < 500ms |
+
+### Orden Recomendado de Pruebas
+
+```
+Sprint 1 - Pruebas Individuales:
+1. ✅ test_bluetooth       (sin hardware adicional)
+2. ✅ test_servo           (solo servomotor)
+3. ✅ test_ultrasonico     (HC-SR04 fijo en mesa)
+4. ✅ test_radar           (servo + HC-SR04 básico)
+5. ✅ test_radar_avanzado  (sistema radar completo)
+6. ✅ test_mpu6050         (requiere biblioteca Adafruit)
+7. ✅ test_motores         (⚠️ elevar robot del suelo)
+
+Sprint 2 - Integración:
+- Radar + Motores (navegación básica)
+- MPU6050 + Motores (tracking de trayectoria)
+- Bluetooth + Control completo
+
+Sprint 3 - Sistema Final:
+- Todos los componentes integrados
+- Ajuste fino de algoritmos
+- Optimización de consumo
+```
 
 ---
 
@@ -298,9 +405,12 @@ python desktop_app.py
 
 ### Métricas de Desempeño
 
-- ✅ **Autonomía**: 45 minutos con batería 2200mAh
+- **Autonomía**: 45 minutos con batería 2200mAh
 - ✅ **Velocidad máxima**: 0.5 m/s
+- ✅ **Rango de detección radar**: 180° (0° a 180°)
+- ✅ **Resolución angular**: 10° (19 posiciones)
 - ✅ **Distancia de detección**: 2-300 cm (efectiva 10-200cm)
+- ✅ **Tiempo de barrido completo**: ~4 segundos
 - ✅ **Tiempo de reacción**: < 100ms desde detección a frenado
 - ✅ **Frecuencia de transmisión BT**: 10Hz (100ms/paquete)
 - ✅ **Precisión de trayectoria**: ±10cm en recorrido de 2m
@@ -333,6 +443,22 @@ python desktop_app.py
 - Verificar conexiones SDA/SCL
 - Confirmar dirección I2C (0x68 o 0x69)
 - Usar Wire.begin(21, 22) explícitamente
+```
+
+**Servo vibra o se mueve erráticamente**
+```
+- Reducir velocidad de barrido (aumentar delays)
+- Verificar alimentación estable de 5V
+- Usar fuente externa si el ESP32 se reinicia
+- Agregar capacitor 100µF en VCC del servo
+```
+
+**Radar da lecturas inconsistentes**
+```
+- Aumentar delay de estabilización del servo (>50ms)
+- Tomar promedio de múltiples mediciones
+- Verificar que HC-SR04 esté bien montado (sin vibración)
+- Alejar HC-SR04 de superficies metálicas
 ```
 
 **Bluetooth no empareja**
