@@ -41,7 +41,7 @@ Diseñar e implementar un robot móvil de navegación autónoma usando ESP32, co
 ## 🔧 Componentes de Hardware
 
 ### Microcontrolador
-- **ESP32 DevKit V1** (30 pines GPIO, WiFi/Bluetooth integrado)
+- **ESP32-S3 DevKit** (Dual-core Xtensa LX7, WiFi/Bluetooth 5.0 BLE integrado)
 
 ### Sensores
 - **HC-SR04** - Sensor ultrasónico (detección de obstáculos 2-400cm)
@@ -232,15 +232,17 @@ numpy==1.24.3
 ### 1. Configurar Arduino IDE
 
 ```bash
-# Instalar soporte para ESP32
+# Instalar soporte para ESP32-S3
 1. File → Preferences → Additional Board Manager URLs:
-   https://dl.espressif.com/dl/package_esp32_index.json
+   https://espressif.github.io/arduino-esp32/package_esp32_index.json
 
-2. Tools → Board → Boards Manager → Buscar "ESP32" → Install
+2. Tools → Board → Boards Manager → Buscar "ESP32" → Install (v2.0.14+)
 
-3. Tools → Board → ESP32 Arduino → "ESP32 Dev Module"
+3. Tools → Board → ESP32 Arduino → "ESP32S3 Dev Module"
 
-4. Tools → Upload Speed → 115200
+4. Tools → USB CDC On Boot → "Enabled"
+
+5. Tools → Upload Speed → 115200
 ```
 
 ### 2. Clonar Repositorio
@@ -442,9 +444,9 @@ Sprint 3 - Sistema Final:
 
 **MPU6050 no responde**
 ```
-- Verificar conexiones SDA/SCL
+- Verificar conexiones SDA/SCL (GPIO 8 y 3)
 - Confirmar dirección I2C (0x68 o 0x69)
-- Usar Wire.begin(21, 22) explícitamente
+- Usar Wire.begin(8, 3) explícitamente
 ```
 
 **Servo vibra o se mueve erráticamente**

@@ -1,5 +1,8 @@
-# Configuración de Pines del Robot ESP32
+# Configuración de Pines del Robot ESP32-S3
 ## Proyecto: Carrito Micros - UMNG
+
+**PLACA:** ESP32-S3 DevKit  
+**BLUETOOTH:** BLE 5.0 (Low Energy) - NO soporta Bluetooth Classic
 
 ---
 
@@ -28,7 +31,7 @@
 | IN4 | GPIO 7 | Dirección adelante/atrás |
 | ENB | GPIO 4 | PWM - Control de velocidad |
 
-**Capacidades PWM:** Todos los pines tienen soporte PWM nativo en ESP32
+**Capacidades PWM:** Todos los pines tienen soporte PWM nativo en ESP32-S3 (hasta 8 canales PWM)
 
 ---
 
@@ -63,8 +66,8 @@
 ## 🔌 Diagrama de Conexiones
 
 ```
-ESP32                    COMPONENTES
-=====                    ===========
+ESP32-S3                 COMPONENTES
+========                 ===========
 
 GPIO 15 ────────────────→ L298N IN1 (Motor A)
 GPIO 16 ────────────────→ L298N IN2 (Motor A)
@@ -92,7 +95,7 @@ GND     ────────────────→ GND común todos los
 
 | Componente | Voltaje | Corriente | Fuente |
 |------------|---------|-----------|--------|
-| ESP32 | 5V (USB) o 3.3V | ~250mA | USB o regulador |
+| ESP32-S3 | 5V (USB-C) o 3.3V | ~130mA (WiFi) | USB-C o regulador |
 | Motores DC | 6-12V | 500mA c/u | Batería (puente H) |
 | Servo SG90 | 5V | 100-500mA | Regulador 5V |
 | HC-SR04 | 5V | 15mA | Regulador 5V |
@@ -105,13 +108,14 @@ GND     ────────────────→ GND común todos los
 
 ## 🛡️ Consideraciones Importantes
 
-### ⚠️ Pines Especiales a Evitar (No en tu lista):
+### ⚠️ Pines Especiales a Evitar en ESP32-S3:
 
-- **GPIO 0** - Boot mode (usado durante programación)
-- **GPIO 2** - LED interno / Boot mode
-- **GPIO 1, 2** - UART TX/RX (Serial Monitor)
-- **GPIO 34-39** - Solo entrada (ADC), sin PWM
-- **GPIO 6-11** - Flash interna (evitar en algunos modelos)
+- **GPIO 0** - Boot mode (strapping pin)
+- **GPIO 19, 20** - USB D- y D+ (si usas USB nativo)
+- **GPIO 26-32** - SPI Flash / PSRAM (reservados)
+- **GPIO 33-37** - SPI Flash / PSRAM (reservados)
+- **GPIO 43, 44** - UART0 TX/RX
+- **GPIO 45** - Strapping pin
 
 ### ✅ Pines Seguros que Usamos:
 
@@ -120,9 +124,9 @@ GND     ────────────────→ GND común todos los
 - **Todos tienen PWM** ✓
 - **Todos son digitales I/O** ✓
 
-### 🔧 Nota sobre GPIO 3:
+### 🔧 Nota sobre GPIO 3 en ESP32-S3:
 
-GPIO 3 es normalmente RX (UART), pero puede usarse como I2C SCL sin problemas cuando no se necesita Serial Monitor simultáneo con I2C. Para este proyecto está bien.
+GPIO 3 es seguro de usar en ESP32-S3 para I2C SCL. A diferencia del ESP32 original, en el S3 no interfiere con funciones críticas. Perfectamente válido para este proyecto.
 
 ---
 
@@ -207,9 +211,24 @@ Cada test usa solo los pines de su componente:
 - ✅ Sin conflictos de hardware
 - ✅ Configuración validada
 
-**Proyecto aprobado para continuar con estos pines.**
+**Proyecto aprobado para continuar con estos pines en ESP32-S3.**
+
+---
+
+## 🔄 Migración de ESP32 a ESP32-S3
+
+### Cambios Requeridos:
+
+1. ✅ **Pines GPIO** - Sin cambios, todos compatibles
+2. ✅ **PWM** - Compatible
+3. ✅ **I2C** - Compatible
+4. ⚠️ **Bluetooth** - Cambiar de Classic a BLE (código diferente)
+5. ✅ **WiFi** - Compatible
+6. ✅ **Alimentación** - Compatible
+
+**Solo Bluetooth requiere actualización de código.**
 
 ---
 
 **Última actualización:** 11 de Noviembre de 2025  
-**Proyecto:** Robot Móvil Autónomo - UMNG
+**Proyecto:** Robot Móvil Autónomo con ESP32-S3 - UMNG
