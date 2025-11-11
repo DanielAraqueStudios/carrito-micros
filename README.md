@@ -77,18 +77,20 @@ Diseñar e implementar un robot móvil de navegación autónoma usando ESP32, co
 | **Servomotor SG90** |  |  |
 | Señal (PWM) | GPIO 13 | Control de posición |
 | **MPU6050** |  |  |
-| SDA | GPIO 21 | I2C Data |
-| SCL | GPIO 22 | I2C Clock |
+| SDA | GPIO 8 | I2C Data |
+| SCL | GPIO 3 | I2C Clock |
 | **L298N Driver** |  |  |
-| IN1 | GPIO 25 | Motor A Dirección |
-| IN2 | GPIO 26 | Motor A Dirección |
-| IN3 | GPIO 27 | Motor B Dirección |
-| IN4 | GPIO 14 | Motor B Dirección |
-| ENA | GPIO 32 | Motor A PWM (Velocidad) |
-| ENB | GPIO 33 | Motor B PWM (Velocidad) |
+| IN1 | GPIO 15 | Motor A Dirección |
+| IN2 | GPIO 16 | Motor A Dirección |
+| IN3 | GPIO 17 | Motor B Dirección |
+| IN4 | GPIO 7 | Motor B Dirección |
+| ENA | GPIO 6 | Motor A PWM (Velocidad) |
+| ENB | GPIO 4 | Motor B PWM (Velocidad) |
 | **Alimentación** |  |  |
 | VIN | 5V | Desde regulador |
 | GND | GND | Común |
+
+> **Nota:** Esta configuración usa solo los pines: 3, 4, 5, 6, 7, 8, 13, 15, 16, 17, 18 (11 pines de 17 disponibles)
 
 > **Nota:** Todos los componentes deben compartir tierra común (GND)
 

@@ -11,14 +11,14 @@
  * 
  * CONEXIONES PUENTE H:
  * Motor A (Izquierdo):
- *   IN1 -> GPIO 25
- *   IN2 -> GPIO 26
- *   ENA -> GPIO 32 (PWM para velocidad)
+ *   IN1 -> GPIO 15
+ *   IN2 -> GPIO 16
+ *   ENA -> GPIO 6 (PWM para velocidad)
  * 
  * Motor B (Derecho):
- *   IN3 -> GPIO 27
- *   IN4 -> GPIO 14
- *   ENB -> GPIO 33 (PWM para velocidad)
+ *   IN3 -> GPIO 17
+ *   IN4 -> GPIO 7
+ *   ENB -> GPIO 4 (PWM para velocidad)
  * 
  * Alimentación:
  *   12V/VCC del puente H -> Batería 6-12V
@@ -33,14 +33,14 @@
  */
 
 // Pines Motor A (Izquierdo)
-#define IN1 25
-#define IN2 26
-#define ENA 32
+#define IN1 15
+#define IN2 16
+#define ENA 6
 
 // Pines Motor B (Derecho)
-#define IN3 27
-#define IN4 14
-#define ENB 33
+#define IN3 17
+#define IN4 7
+#define ENB 4
 
 // Velocidades de prueba
 #define VELOCIDAD_BAJA 150

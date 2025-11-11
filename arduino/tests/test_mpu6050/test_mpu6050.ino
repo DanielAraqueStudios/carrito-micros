@@ -7,8 +7,8 @@
  * CONEXIONES:
  * MPU6050 VCC -> 3.3V (o 5V)
  * MPU6050 GND -> GND
- * MPU6050 SDA -> GPIO 21 (I2C Data)
- * MPU6050 SCL -> GPIO 22 (I2C Clock)
+ * MPU6050 SDA -> GPIO 8 (I2C Data)
+ * MPU6050 SCL -> GPIO 3 (I2C Clock)
  * MPU6050 AD0 -> GND (dirección I2C 0x68)
  * 
  * BIBLIOTECA REQUERIDA:
@@ -39,15 +39,15 @@ void setup() {
   Serial.println("=============================");
   
   // Inicializar I2C
-  Wire.begin(21, 22); // SDA, SCL
+  Wire.begin(8, 3); // SDA, SCL
   
   // Inicializar MPU6050
   Serial.print("Buscando MPU6050... ");
   if (!mpu.begin()) {
     Serial.println("FALLO!");
     Serial.println("Verificar conexiones:");
-    Serial.println("- SDA -> GPIO 21");
-    Serial.println("- SCL -> GPIO 22");
+    Serial.println("- SDA -> GPIO 8");
+    Serial.println("- SCL -> GPIO 3");
     Serial.println("- VCC -> 3.3V");
     Serial.println("- GND -> GND");
     while (1) {
